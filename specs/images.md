@@ -179,11 +179,11 @@ Set the image's OCI config (entrypoint, env vars, working directory, exposed por
 Run shell commands during the build to modify the image filesystem. Runs as the build user (not root) in a temp directory containing the image contents:
 
 ```nix
-{ pkgs, lib, org, registry }:
+{ pkgs, lib, org, registry, ... }:
 {
   name = "${registry}/my-app";
   tag = "latest";
-  contents = [ pkgs.busybox ];
+  contents = with pkgs; [ busybox ];
 
   extraCommands = ''
     mkdir -p data
@@ -199,11 +199,11 @@ Note: paths are relative to the image root (no leading `/`).
 Like `extraCommands` but runs inside a fakeroot environment, allowing operations that require root-like permissions (e.g. `chown`):
 
 ```nix
-{ pkgs, lib, org, registry }:
+{ pkgs, lib, org, registry, ... }:
 {
   name = "${registry}/my-app";
   tag = "latest";
-  contents = [ pkgs.busybox ];
+  contents = with pkgs; [ busybox ];
 
   fakeRootCommands = ''
     mkdir -p ./data
