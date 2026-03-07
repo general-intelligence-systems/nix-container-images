@@ -24,7 +24,7 @@ The file must be a Nix function with this signature:
 {
   name = "${registry}/<name>";
   tag = "latest";
-  contents = [
+  contents = with pkgs; [
     # Nix packages to include in the image
   ];
 }
@@ -104,9 +104,9 @@ Adding a `redis` image:
 {
   name = "${registry}/redis";
   tag = "latest";
-  contents = [
-    pkgs.redis
-    pkgs.cacert
+  contents = with pkgs; [
+    redis
+    cacert
   ];
 }
 ```
@@ -135,10 +135,10 @@ in
 {
   name = "${registry}/claude-code";
   tag = "latest";
-  contents = [
+  contents = with pkgs; [
     claude-code
-    pkgs.cacert
-    pkgs.git
+    cacert
+    git
   ];
 }
 ```
@@ -154,11 +154,11 @@ The attribute set returned by the image function is passed directly to `pkgs.doc
 Set the image's OCI config (entrypoint, env vars, working directory, exposed ports):
 
 ```nix
-{ pkgs, lib, org, registry }:
+{ pkgs, lib, org, registry, ... }:
 {
   name = "${registry}/my-app";
   tag = "latest";
-  contents = [ pkgs.my-app pkgs.cacert ];
+  contents = with pkgs; [ my-app cacert ];
 
   config = {
     Cmd = [ "/bin/my-app" "--flag" ];

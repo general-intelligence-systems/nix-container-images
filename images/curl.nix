@@ -4,9 +4,9 @@
 
   tag = "latest";
 
-  contents = [
-    pkgs.curl
-    pkgs.jq
-    pkgs.cacert
+  contents = with pkgs; [
+    curl
+    jq
+    cacert
   ];
 }

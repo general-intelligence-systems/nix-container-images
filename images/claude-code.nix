@@ -7,9 +7,9 @@ in
 
   tag = "latest";
 
-  contents = [
+  contents = with pkgs; [
     claude-code
-    pkgs.cacert
-    pkgs.git
+    cacert
+    git
   ];
 }
