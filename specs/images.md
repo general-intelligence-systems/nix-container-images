@@ -84,11 +84,19 @@ bin/test
 
 This runs `nix flake check` to ensure the flake evaluates without errors. See [testing.md](./testing.md) for details.
 
-### 6. Update the spec index
+### 6. Update the README
+
+Add a row for the new image to the Images table in `README.md`:
+
+```markdown
+| <name> | `ghcr.io/general-intelligence-systems/<name>:latest` |
+```
+
+### 7. Update the spec index
 
 If you added or changed any specs, add a row to [specs/README.md](./README.md) so the index stays current.
 
-### 7. Commit and push
+### 8. Commit and push
 
 Commit the new `images/<name>.nix` file and push to `trench`. CI will automatically build and push the image to GHCR.
 
