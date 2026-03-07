@@ -6,6 +6,7 @@ Minimal, reproducible container images built with Nix and published to GitHub Co
 
 | Image | Path | Contents |
 |-------|------|----------|
+| claude-code | `ghcr.io/general-intelligence-systems/claude-code:latest` | claude-code, cacert, git |
 | curl | `ghcr.io/general-intelligence-systems/curl:latest` | curl, jq, cacert |
 
 ## Usage
