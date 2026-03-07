@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo '🔨 building...'
+
+nix flake show --json 2>/dev/null \
+  | jq -r '.packages."x86_64-linux" | keys[]' \
+  | while read -r pkg; do
+      echo "📦 Building ${pkg}"
+      nix build ".#${pkg}" --print-out-paths
+    done
+
+echo '✅ done'

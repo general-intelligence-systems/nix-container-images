@@ -1,0 +1,36 @@
+name: Build All Images
+
+on:
+  push:
+    branches: [trench]
+    paths:
+      - "flake.nix"
+      - "flake.lock"
+  workflow_dispatch:
+
+jobs:
+  list-images:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.list.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List all images
+        id: list
+        run: |
+          images=$(ls images/*.nix \
+            | sed 's|images/||; s|\.nix$||' \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "images=$images" >> $GITHUB_OUTPUT
+
+  build:
+    needs: list-images
+    if: needs.list-images.outputs.images != '[]'
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.list-images.outputs.images) }}
+    uses: ./.github/workflows/build-and-push.yml
+    with:
+      image: ${{ matrix.image }}
+    secrets: inherit

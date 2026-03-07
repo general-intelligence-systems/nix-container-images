@@ -1,0 +1,36 @@
+name: Dispatch Image Builds
+
+on:
+  push:
+    branches: [trench]
+    paths:
+      - "images/*.nix"
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.changed.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed images
+        id: changed
+        run: |
+          images=$(git diff --name-only HEAD~1 HEAD -- 'images/*.nix' \
+            | sed 's|images/||; s|\.nix$||' \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "images=$images" >> $GITHUB_OUTPUT
+
+  build:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.images != '[]'
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.detect-changes.outputs.images) }}
+    uses: ./.github/workflows/build-and-push.yml
+    with:
+      image: ${{ matrix.image }}
+    secrets: inherit
