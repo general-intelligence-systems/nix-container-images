@@ -2,6 +2,11 @@ name: Build and Push Container Image
 
 on:
   workflow_dispatch:
+    inputs:
+      image:
+        description: "Image name (matches filename in images/ without .nix)"
+        required: true
+        type: string
   workflow_call:
     inputs:
       image:
