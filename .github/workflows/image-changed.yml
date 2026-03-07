@@ -13,11 +13,8 @@ jobs:
       images: ${{ steps.changed.outputs.images }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: cachix/install-nix-action@v31.10.0
         with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
+          fetch-depth: 2
 
       - name: Detect changed images
         id: changed
