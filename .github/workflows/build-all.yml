@@ -9,6 +9,8 @@ jobs:
     outputs:
       images: ${{ steps.list.outputs.images }}
     steps:
+      - uses: actions/checkout@v4
+
       - name: List all images
         id: list
         run: |

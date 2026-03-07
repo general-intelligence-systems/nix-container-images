@@ -1,6 +1,6 @@
-{ pkgs, lib, org }:
+{ pkgs, lib, org, registry }:
 {
-  name = "${org}/curl";
+  name = "${registry}/curl";
 
   tag = "latest";
 

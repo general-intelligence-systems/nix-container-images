@@ -11,7 +11,7 @@
       org      = "general-intelligence-systems";
       registry = "ghcr.io/${org}";
 
-      importFile = filename: import (./images + "/${filename}") { inherit pkgs lib org; };
+      importFile = filename: import (./images + "/${filename}") { inherit pkgs lib org registry; };
 
       imageDir       = builtins.readDir ./images;
       imageFilenames = builtins.attrNames imageDir;
