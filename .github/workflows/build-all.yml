@@ -1,12 +1,7 @@
 name: Build All Images
 
 on:
-  push:
-    branches: [trench]
-    paths:
-      - "flake.nix"
-      - "flake.lock"
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   list-images:
@@ -14,8 +9,6 @@ jobs:
     outputs:
       images: ${{ steps.list.outputs.images }}
     steps:
-      - uses: actions/checkout@v4
-
       - name: List all images
         id: list
         run: |
@@ -30,7 +23,7 @@ jobs:
     strategy:
       matrix:
         image: ${{ fromJson(needs.list-images.outputs.images) }}
-    uses: ./.github/workflows/build-and-push.yml
+    uses: ./.github/workflows/build.yml
     with:
       image: ${{ matrix.image }}
     secrets: inherit
