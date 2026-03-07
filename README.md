@@ -14,9 +14,6 @@ Minimal, reproducible container images built with Nix and published to GitHub Co
 docker pull ghcr.io/general-intelligence-systems/curl:latest
 ```
 
-```sh
-docker run --rm ghcr.io/general-intelligence-systems/curl:latest curl -s https://example.com
-```
 
 ## License
 
