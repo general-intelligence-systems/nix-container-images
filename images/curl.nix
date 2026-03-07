@@ -1,4 +1,4 @@
-{ pkgs, lib, org, registry }:
+{ pkgs, lib, org, registry, ... }:
 {
   name = "${registry}/curl";
 

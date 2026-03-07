@@ -20,7 +20,7 @@ Create `images/<name>.nix` where `<name>` is the image name (lowercase, hyphens 
 The file must be a Nix function with this signature:
 
 ```nix
-{ pkgs, lib, org, registry }:
+{ pkgs, lib, org, registry, ... }:
 {
   name = "${registry}/<name>";
   tag = "latest";
@@ -29,6 +29,8 @@ The file must be a Nix function with this signature:
   ];
 }
 ```
+
+The trailing `...` is required so the function accepts additional arguments passed by the flake (such as `inputs` and `system`). Explicitly bind any extras you need (see [Using external flake inputs](#using-external-flake-inputs) below).
 
 #### Required attributes
 
@@ -46,8 +48,18 @@ The file must be a Nix function with this signature:
 | `lib`      | nixpkgs lib | Nix utility functions. |
 | `org`      | `"general-intelligence-systems"` | GitHub org name. |
 | `registry` | `"ghcr.io/general-intelligence-systems"` | Full registry prefix. |
+| `inputs`   | flake inputs attrset | All flake inputs (e.g. `inputs.nixpkgs`, `inputs.claude-code`). Bind explicitly when needed. |
+| `system`   | `"x86_64-linux"` | Current system platform. Useful with `inputs.<name>.packages.${system}`. |
 
-### 2. Build locally
+### 2. Stage the file with git
+
+```sh
+git add images/<name>.nix
+```
+
+Nix flakes only see files tracked by git. If you skip this step, `nix build`, `nix flake check`, and `nix flake show` will silently ignore the new image.
+
+### 3. Build locally
 
 ```sh
 nix build .#<name>
@@ -55,7 +67,7 @@ nix build .#<name>
 
 This produces a `result` symlink pointing to a Docker-loadable tarball.
 
-### 3. Test locally
+### 4. Test locally
 
 ```sh
 docker load < result
@@ -64,15 +76,15 @@ docker run --rm ghcr.io/general-intelligence-systems/<name>:latest <command>
 
 Verify the image contains the expected tools and behaves correctly.
 
-### 4. Validate the flake
+### 5. Validate the flake
 
 ```sh
 bin/test
 ```
 
-This runs `nix flake check` to ensure the flake evaluates without errors.
+This runs `nix flake check` to ensure the flake evaluates without errors. See [testing.md](./testing.md) for details.
 
-### 5. Commit and push
+### 6. Commit and push
 
 Commit the new `images/<name>.nix` file and push to `trench`. CI will automatically build and push the image to GHCR.
 
@@ -84,7 +96,7 @@ Adding a `redis` image:
 
 ```nix
 # images/redis.nix
-{ pkgs, lib, org, registry }:
+{ pkgs, lib, org, registry, ... }:
 {
   name = "${registry}/redis";
   tag = "latest";
@@ -100,6 +112,34 @@ nix build .#redis
 docker load < result
 docker run --rm ghcr.io/general-intelligence-systems/redis:latest redis-server --version
 ```
+
+## Using external flake inputs
+
+If the image needs a package from an external flake (not in nixpkgs), follow these steps:
+
+1. Add the flake input to `flake.nix` under `inputs`.
+2. In the image file, bind `inputs` and `system` in the function arguments and use a `let..in` block to extract the package.
+
+Example — an image using a package from the `claude-code-nix` flake:
+
+```nix
+# images/claude-code.nix
+{ pkgs, lib, org, registry, inputs, system, ... }:
+let
+  claude-code = inputs.claude-code.packages.${system}.default;
+in
+{
+  name = "${registry}/claude-code";
+  tag = "latest";
+  contents = [
+    claude-code
+    pkgs.cacert
+    pkgs.git
+  ];
+}
+```
+
+After adding or changing a flake input, run `nix flake lock` to update `flake.lock`.
 
 ## Advanced options
 

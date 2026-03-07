@@ -30,3 +30,4 @@ Design documentation for nix-container-images, a that build NixOS docker images 
 | Spec | Code | Purpose |
 |------|------|---------|
 | [images.md](./images.md) | [images/](../images) | How to add a new container image to the repository |
+| [testing.md](./testing.md) | [bin/test](../bin/test) | How to validate the flake and the git-add requirement |

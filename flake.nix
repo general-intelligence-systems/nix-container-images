@@ -1,9 +1,12 @@
 {
   description = "Container images built with Nix";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    claude-code.url = "github:general-intelligence-systems/claude-code-nix";
+  };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, ... }@inputs:
     let
       system   = "x86_64-linux";
       pkgs     = nixpkgs.legacyPackages.${system};
@@ -11,7 +14,9 @@
       org      = "general-intelligence-systems";
       registry = "ghcr.io/${org}";
 
-      importFile = filename: import (./images + "/${filename}") { inherit pkgs lib org registry; };
+      importFile = filename: import (./images + "/${filename}") {
+        inherit pkgs lib org registry inputs system;
+      };
 
       imageDir       = builtins.readDir ./images;
       imageFilenames = builtins.attrNames imageDir;
