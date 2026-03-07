@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     claude-code.url = "github:general-intelligence-systems/claude-code-nix";
+    opencode.url = "github:general-intelligence-systems/opencode-flake";
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
