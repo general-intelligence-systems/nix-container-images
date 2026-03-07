@@ -4,7 +4,6 @@
 
   tag = "latest";
 
-
   contents = [
     pkgs.curl
     pkgs.jq
