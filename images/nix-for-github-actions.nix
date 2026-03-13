@@ -27,6 +27,7 @@
   config = {
     Env = [
       "LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib"
+      "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
     ];
   };
 }
