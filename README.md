@@ -18,6 +18,7 @@ Minimal, reproducible container images built with Nix and published to GitHub Co
 | claude-code | `ghcr.io/general-intelligence-systems/claude-code:latest` |
 | curl | `ghcr.io/general-intelligence-systems/curl:latest` |
 | opencode | `ghcr.io/general-intelligence-systems/opencode:latest` |
+| nix-for-github-actions | `ghcr.io/general-intelligence-systems/nix-for-github-actions:latest` |
 
 ## Usage
 
