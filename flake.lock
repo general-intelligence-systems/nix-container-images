@@ -107,7 +107,24 @@
       "inputs": {
         "claude-code": "claude-code",
         "nixpkgs": "nixpkgs_2",
-        "opencode": "opencode"
+        "opencode": "opencode",
+        "runner-images": "runner-images"
+      }
+    },
+    "runner-images": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1773410716,
+        "narHash": "sha256-hhagKxPaX82T+maOwqsTE5RHaqqxP/MUx+3LclBcNDM=",
+        "owner": "actions",
+        "repo": "runner-images",
+        "rev": "155611075f91237686880f896e7a532baad72efd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "actions",
+        "repo": "runner-images",
+        "type": "github"
       }
     },
     "systems": {
