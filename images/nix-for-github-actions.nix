@@ -20,5 +20,6 @@
     nodejs
     python3
     ruby
+    glibc
   ];
 }
