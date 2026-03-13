@@ -23,4 +23,10 @@
     glibc
     stdenv.cc.cc.lib
   ];
+
+  config = {
+    Env = [
+      "LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib"
+    ];
+  };
 }
