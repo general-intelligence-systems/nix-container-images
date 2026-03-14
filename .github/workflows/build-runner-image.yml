@@ -31,8 +31,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull base-runner
-        run: docker pull ghcr.io/general-intelligence-systems/base-runner:latest
+      - name: Pull nixos/nix base
+        run: docker pull nixos/nix:latest
 
       - name: Build nix-for-github-actions
         run: nix run .#nix-for-github-actions
