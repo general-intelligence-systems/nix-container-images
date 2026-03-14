@@ -12,5 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: debug
+        run: |
+          whoami
+          echo $PATH
+          
       - name: Check nix flake
         run: nix flake check
