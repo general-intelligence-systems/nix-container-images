@@ -10,6 +10,9 @@ let
     ENV PATH="/home/runner/.nix-profile/bin:''${PATH}"
     RUN mkdir -p /home/runner/.config/nix && echo "experimental-features = nix-command flakes" > /home/runner/.config/nix/nix.conf
     RUN nix profile install nixpkgs#ruby nixpkgs#xxd nixpkgs#crane
+    USER root
+    RUN ln -sf /home/runner/.nix-profile/bin/* /usr/local/bin/
+    USER runner
   '';
 in
 pkgs.stdenv.mkDerivation {
