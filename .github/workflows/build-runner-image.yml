@@ -24,7 +24,7 @@ jobs:
             experimental-features = nix-command flakes
 
       - name: Build patched runner image context
-        run: nix build .#runner-images-ubuntu-slim
+        run: nix build .#nix-for-github-actions
 
       - name: Build Docker image
         run: docker build -t ghcr.io/general-intelligence-systems/nix-for-github-actions:latest result
