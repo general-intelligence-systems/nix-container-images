@@ -32,7 +32,7 @@
 
       buildImage = _: config: pkgs.dockerTools.buildLayeredImage config;
 
-      nix-for-github-actions = import ./nix-for-github-actions.nix { inherit pkgs inputs; };
+      nix-for-github-actions = import ./runners/nix-for-github-actions.nix { inherit pkgs inputs; };
     in
     {
       packages.${system} = lib.mapAttrs buildImage imageConfigs // {
