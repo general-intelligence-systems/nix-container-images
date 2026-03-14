@@ -12,7 +12,7 @@ pkgs.writeShellApplication {
     container=$(docker run -d "${baseImage}" sleep infinity)
     trap 'docker rm -f "$container" > /dev/null' EXIT
 
-    docker exec "$container" bash -lc 'nix profile install nixpkgs#k3s'
+    docker exec "$container" nix profile install nixpkgs#k3s
 
     docker commit "$container" "${imageName}:${imageTag}"
     echo "Built ${imageName}:${imageTag}"

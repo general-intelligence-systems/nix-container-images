@@ -31,11 +31,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull base-runner
-        run: docker pull ghcr.io/general-intelligence-systems/base-runner:latest
+      - name: Build nix-for-github-actions context
+        run: nix build .#nix-for-github-actions
 
-      - name: Build nix-for-github-actions
-        run: nix run .#nix-for-github-actions
+      - name: Build nix-for-github-actions image
+        run: docker build -t ghcr.io/general-intelligence-systems/nix-for-github-actions:latest result
 
       - name: Push nix-for-github-actions
         run: docker push ghcr.io/general-intelligence-systems/nix-for-github-actions:latest
