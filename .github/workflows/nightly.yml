@@ -1,0 +1,15 @@
+name: nightly build
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  images:
+    uses: ./.github/workflows/build-all.yml
+    secrets: inherit
+
+  runners:
+    uses: ./.github/workflows/build-runner-image.yml
+    secrets: inherit
