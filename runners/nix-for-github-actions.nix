@@ -8,7 +8,8 @@ let
     USER runner
     RUN curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --no-daemon
     ENV PATH="/home/runner/.nix-profile/bin:''${PATH}"
-    RUN . /home/runner/.nix-profile/etc/profile.d/nix.sh && nix profile install nixpkgs#ruby nixpkgs#xxd nixpkgs#crane
+    RUN mkdir -p /home/runner/.config/nix && echo "experimental-features = nix-command flakes" > /home/runner/.config/nix/nix.conf
+    RUN nix profile install nixpkgs#ruby nixpkgs#xxd nixpkgs#crane
   '';
 in
 pkgs.stdenv.mkDerivation {
