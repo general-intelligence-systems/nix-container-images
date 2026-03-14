@@ -1,20 +1,22 @@
 { pkgs, inputs }:
 let
-  additions = pkgs.writeText "dockerfile-additions" ''
-    RUN apt-get update && apt-get install -y --no-install-recommends ruby xxd && rm -rf /var/lib/apt/lists/*
-    RUN curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --no-daemon
-    RUN curl -sL "https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz" | tar xz -C /usr/local/bin crane
-  '';
+  registry = "ghcr.io/general-intelligence-systems";
+  baseImage = "${registry}/base-runner:latest";
+  imageName = "${registry}/nix-for-github-actions";
+  imageTag = "latest";
 in
-pkgs.stdenv.mkDerivation {
-  name = "nix-for-github-actions";
-  src = inputs.runner-images;
+pkgs.writeShellApplication {
+  name = "build-nix-for-github-actions";
+  runtimeInputs = [ pkgs.docker ];
+  text = ''
+    container=$(docker run -d "${baseImage}" sleep infinity)
+    trap 'docker rm -f "$container" > /dev/null' EXIT
 
-  phases = [ "unpackPhase" "installPhase" ];
+    docker exec "$container" bash -c 'apt-get update && apt-get install -y --no-install-recommends ruby xxd && rm -rf /var/lib/apt/lists/*'
+    docker exec "$container" bash -c 'curl --proto "=https" --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --no-daemon'
+    docker exec "$container" bash -c 'curl -sL "https://github.com/google/go-containerregistry/releases/latest/download/go-containerregistry_Linux_x86_64.tar.gz" | tar xz -C /usr/local/bin crane'
 
-  installPhase = ''
-    mkdir -p $out
-    cp -r images/ubuntu-slim/* $out/
-    sed -i "/^ENTRYPOINT/e cat ${additions}" $out/Dockerfile
+    docker commit "$container" "${imageName}:${imageTag}"
+    echo "Built ${imageName}:${imageTag}"
   '';
 }

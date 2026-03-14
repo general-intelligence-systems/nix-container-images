@@ -32,12 +32,19 @@
 
       buildImage = _: config: pkgs.dockerTools.buildLayeredImage config;
 
-      nix-for-github-actions = import ./runners/nix-for-github-actions.nix { inherit pkgs inputs; };
+      importRunner = filename: import (./runners + "/${filename}") {
+        inherit pkgs inputs;
+      };
+
+      runnerDir       = builtins.readDir ./runners;
+      runnerFilenames = builtins.filter (f: lib.hasSuffix ".nix" f) (builtins.attrNames runnerDir);
+      runnerNames     = map (lib.removeSuffix ".nix") runnerFilenames;
+      runnerPkgs      = map importRunner runnerFilenames;
+
+      runners = lib.listToAttrs (lib.zipListsWith lib.nameValuePair runnerNames runnerPkgs);
     in
     {
-      packages.${system} = lib.mapAttrs buildImage imageConfigs // {
-        inherit nix-for-github-actions;
-      };
+      packages.${system} = lib.mapAttrs buildImage imageConfigs // runners;
 
       devShells.${system}.default = pkgs.mkShell {
         packages = [];

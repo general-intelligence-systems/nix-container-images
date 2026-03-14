@@ -1,10 +1,11 @@
-name: Build and Push Runner Image
+name: Build and Push Runner Images
 
 on:
   workflow_dispatch:
   push:
     branches: [trench]
     paths:
+      - "runners/*.nix"
       - "flake.nix"
       - "flake.lock"
 
@@ -23,12 +24,6 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
-      - name: Build patched runner image context
-        run: nix build .#nix-for-github-actions
-
-      - name: Build Docker image
-        run: docker build -t ghcr.io/general-intelligence-systems/nix-for-github-actions:latest result
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -36,5 +31,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image
+      - name: Pull base-runner
+        run: docker pull ghcr.io/general-intelligence-systems/base-runner:latest
+
+      - name: Build nix-for-github-actions
+        run: nix run .#nix-for-github-actions
+
+      - name: Push nix-for-github-actions
         run: docker push ghcr.io/general-intelligence-systems/nix-for-github-actions:latest
+
+      - name: Build k3s-runner
+        run: nix run .#k3s-runner
+
+      - name: Push k3s-runner
+        run: docker push ghcr.io/general-intelligence-systems/k3s-runner:latest

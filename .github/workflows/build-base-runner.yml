@@ -1,0 +1,37 @@
+name: Build and Push Base Runner
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 0"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31.10.0
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build base-runner context
+        run: nix build .#base-runner
+
+      - name: Build base-runner image
+        run: docker build -t ghcr.io/general-intelligence-systems/base-runner:latest result
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push base-runner
+        run: docker push ghcr.io/general-intelligence-systems/base-runner:latest
