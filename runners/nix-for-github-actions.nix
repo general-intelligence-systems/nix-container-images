@@ -3,6 +3,7 @@ let
   dockerfile = pkgs.writeText "Dockerfile" ''
     FROM ghcr.io/actions/actions-runner:latest
     USER root
+    RUN apt-get update && apt-get install -y --no-install-recommends xz-utils && rm -rf /var/lib/apt/lists/*
     RUN mkdir -p /nix && chown runner:runner /nix
     USER runner
     RUN curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --no-daemon
