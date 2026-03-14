@@ -8,7 +8,7 @@ jobs:
   nix-build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/general-intelligence-systems/base-runner:latest
+      image: ghcr.io/general-intelligence-systems/nix-for-github-actions:latest
     steps:
       - uses: actions/checkout@v4
 
