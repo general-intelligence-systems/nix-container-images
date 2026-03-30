@@ -5,6 +5,10 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     claude-code.url = "github:general-intelligence-systems/claude-code-nix";
     opencode.url = "github:general-intelligence-systems/opencode-flake";
+    nix4vscode = {
+      url = "github:nix-community/nix4vscode";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     runner-images = {
       url = "github:actions/runner-images";
       flake = false;
