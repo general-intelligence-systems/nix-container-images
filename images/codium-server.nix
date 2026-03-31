@@ -19,8 +19,8 @@ let
     vscodeExtensions = extensions;
   };
 
-  fhsLibs = with pkgs; [
-    glibc
+  # Libraries that unpatched binaries (extensions, serve-web prereqs) need
+  nixLdLibraryPath = lib.makeLibraryPath (with pkgs; [
     stdenv.cc.cc.lib
     zlib
     openssl
@@ -28,7 +28,7 @@ let
     libsecret
     xorg.libX11
     xorg.libxcb
-  ];
+  ]);
 in
 {
   name = "${registry}/codium-server";
@@ -37,6 +37,10 @@ in
 
   contents = with pkgs; [
     codium-with-extensions
+
+    # nix-ld — shim for unpatched dynamic binaries
+    nix-ld
+
     dumb-init
     bashInteractive
     coreutils
@@ -78,15 +82,9 @@ in
     chmod 1777 ./tmp
     mkdir -p ./run
 
+    # nix-ld: symlink the shim as the dynamic linker
     mkdir -p ./lib64
-    ln -sf ${pkgs.glibc}/lib/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
-
-    mkdir -p ./usr/lib
-    ${lib.concatMapStringsSep "\n" (l: ''
-      for f in ${l}/lib/*.so*; do
-        [ -f "$f" ] && ln -sf "$f" ./usr/lib/$(basename "$f") || true
-      done
-    '') fhsLibs}
+    ln -sf ${pkgs.nix-ld}/libexec/nix-ld/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
   '';
@@ -111,7 +109,8 @@ in
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "EDITOR=codium --wait"
-      "LD_LIBRARY_PATH=/usr/lib"
+      "NIX_LD=${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2"
+      "NIX_LD_LIBRARY_PATH=${nixLdLibraryPath}"
     ];
   };
 }
