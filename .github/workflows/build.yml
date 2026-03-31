@@ -32,6 +32,7 @@ jobs:
         run: |
           git config --global --add safe.directory '*'
           rm -rf /homeless-shelter
+          unset LD_LIBRARY_PATH
           nix build .#${{ inputs.image }}
 
       - name: Load image into Docker

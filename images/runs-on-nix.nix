@@ -66,18 +66,21 @@
     mkdir -p ./lib64
     ln -sf ${pkgs.glibc}/lib/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
 
-    # FHS compat: libstdc++ at /lib/ for GitHub Actions injected Node.js
-    # Only symlink libstdc++ (not all of glibc) to avoid polluting Nix binaries
-    ln -sf ${pkgs.stdenv.cc.cc.lib}/lib/libstdc++.so.6 ./lib64/libstdc++.so.6
-
-
+    # FHS compat: library symlinks for GitHub Actions injected binaries
+    mkdir -p ./lib/x86_64-linux-gnu
+    for f in ${pkgs.glibc}/lib/*.so*; do
+      [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
+    done
+    for f in ${pkgs.stdenv.cc.cc.lib}/lib/*.so*; do
+      [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
+    done
   '';
 
   config = {
     Env = [
       "HOME=/root"
       "USER=root"
-
+      "LD_LIBRARY_PATH=/lib/x86_64-linux-gnu"
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "GIT_SSL_CAINFO=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"

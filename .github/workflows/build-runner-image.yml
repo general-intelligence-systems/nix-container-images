@@ -35,6 +35,7 @@ jobs:
         run: |
           git config --global --add safe.directory '*'
           rm -rf /homeless-shelter
+          unset LD_LIBRARY_PATH
           nix build .#nix-for-github-actions
 
       - name: Build nix-for-github-actions image
@@ -48,6 +49,7 @@ jobs:
           HOME: /root
         run: |
           rm -rf /homeless-shelter
+          unset LD_LIBRARY_PATH
           nix run .#k3s-runner
 
       - name: Push k3s-runner
