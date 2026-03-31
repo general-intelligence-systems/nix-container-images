@@ -99,6 +99,10 @@ in
     mkdir -p ./home/coder
     chown 1000:1000 ./home/coder
 
+    # Shell profile to include nix profile in PATH
+    mkdir -p ./etc/profile.d
+    echo 'export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix.sh
+
     mkdir -p ./tmp
     chmod 1777 ./tmp
     mkdir -p ./run
