@@ -14,14 +14,10 @@ let
     "editorconfig.editorconfig"
   ];
 
-  codium-with-extensions = pkgs.vscode-with-extensions.override {
-    vscode = pkgs.vscodium;
-    vscodeExtensions = extensions;
-  };
-
-  # Libraries that unpatched binaries (extensions, serve-web prereqs) need
-  nixLdLibraryPath = lib.makeLibraryPath (with pkgs; [
-    stdenv.cc.cc.lib
+  # Use vscodium.fhs — launches inside FHS compliant environment
+  # so serve-web prereq checks find libstdc++.so and ldconfig,
+  # and extension binaries with pre-compiled libs just work.
+  codium-fhs = pkgs.vscodium.fhsWithPackages (ps: with ps; [
     zlib
     openssl
     icu
@@ -29,6 +25,11 @@ let
     xorg.libX11
     xorg.libxcb
   ]);
+
+  codium-with-extensions = pkgs.vscode-with-extensions.override {
+    vscode = codium-fhs;
+    vscodeExtensions = extensions;
+  };
 in
 {
   name = "${registry}/codium-server";
@@ -36,10 +37,8 @@ in
   maxLayers = 120;
 
   contents = with pkgs; [
+    # Editor (FHS-wrapped)
     codium-with-extensions
-
-    # nix-ld — shim for unpatched dynamic binaries
-    nix-ld
 
     dumb-init
     bashInteractive
@@ -82,10 +81,6 @@ in
     chmod 1777 ./tmp
     mkdir -p ./run
 
-    # nix-ld: symlink the shim as the dynamic linker
-    mkdir -p ./lib64
-    ln -sf ${pkgs.nix-ld}/libexec/nix-ld/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
-
     echo 'hosts: files dns' > ./etc/nsswitch.conf
   '';
 
@@ -109,8 +104,6 @@ in
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "EDITOR=codium --wait"
-      "NIX_LD=${pkgs.stdenv.cc.libc}/lib/ld-linux-x86-64.so.2"
-      "NIX_LD_LIBRARY_PATH=${nixLdLibraryPath}"
     ];
   };
 }
