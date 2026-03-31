@@ -58,6 +58,7 @@
     echo 'build-users-group =' > ./etc/nix/nix.conf
     echo 'experimental-features = nix-command flakes' >> ./etc/nix/nix.conf
     echo 'sandbox = false' >> ./etc/nix/nix.conf
+    echo 'filter-syscalls = false' >> ./etc/nix/nix.conf
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
 

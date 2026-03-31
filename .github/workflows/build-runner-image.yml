@@ -30,8 +30,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build nix-for-github-actions context
+        env:
+          HOME: /root
         run: |
           git config --global --add safe.directory '*'
+          rm -rf /homeless-shelter
           nix build .#nix-for-github-actions
 
       - name: Build nix-for-github-actions image
@@ -41,7 +44,11 @@ jobs:
         run: docker push ghcr.io/general-intelligence-systems/nix-for-github-actions:latest
 
       - name: Build k3s-runner
-        run: nix run .#k3s-runner
+        env:
+          HOME: /root
+        run: |
+          rm -rf /homeless-shelter
+          nix run .#k3s-runner
 
       - name: Push k3s-runner
         run: docker push ghcr.io/general-intelligence-systems/k3s-runner:latest

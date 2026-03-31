@@ -27,8 +27,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build image
+        env:
+          HOME: /root
         run: |
           git config --global --add safe.directory '*'
+          rm -rf /homeless-shelter
           nix build .#${{ inputs.image }}
 
       - name: Load image into Docker
