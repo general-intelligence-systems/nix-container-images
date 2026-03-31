@@ -18,7 +18,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/general-intelligence-systems/runs-on-nix:latest
+      image: ghcr.io/general-intelligence-systems/runs-on-github:latest
     steps:
       - uses: actions/checkout@v4
 

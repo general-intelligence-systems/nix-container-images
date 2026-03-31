@@ -1,6 +1,6 @@
 { pkgs, lib, org, registry, ... }:
 {
-  name = "${registry}/runs-on-nix";
+  name = "${registry}/runs-on-github";
   tag = "latest";
   maxLayers = 80;
 
@@ -37,7 +37,7 @@
     gnumake
     jq
 
-    # Node.js
+    # Node.js (needed by Forgejo/GitHub checkout action)
     nodejs
   ];
 
@@ -61,12 +61,26 @@
     echo 'filter-syscalls = false' >> ./etc/nix/nix.conf
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
+
+    # FHS compat: dynamic linker symlink
+    mkdir -p ./lib64
+    ln -sf ${pkgs.glibc}/lib/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
+
+    # FHS compat: library symlinks for GitHub Actions injected binaries
+    mkdir -p ./lib/x86_64-linux-gnu
+    for f in ${pkgs.glibc}/lib/*.so*; do
+      [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
+    done
+    for f in ${pkgs.stdenv.cc.cc.lib}/lib/*.so*; do
+      [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
+    done
   '';
 
   config = {
     Env = [
       "HOME=/root"
       "USER=root"
+      "LD_LIBRARY_PATH=/lib/x86_64-linux-gnu"
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "GIT_SSL_CAINFO=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"

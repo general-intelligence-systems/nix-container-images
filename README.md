@@ -21,6 +21,7 @@ Minimal, reproducible container images built with Nix and published to GitHub Co
 | nix-for-github-actions | `ghcr.io/general-intelligence-systems/nix-for-github-actions:latest` |
 | k3s-runner | `ghcr.io/general-intelligence-systems/k3s-runner:latest` |
 | runs-on-nix | `ghcr.io/general-intelligence-systems/runs-on-nix:latest` |
+| runs-on-github | `ghcr.io/general-intelligence-systems/runs-on-github:latest` |
 | codium-server | `ghcr.io/general-intelligence-systems/codium-server:latest` |
 
 ## Usage
