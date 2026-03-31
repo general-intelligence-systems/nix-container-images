@@ -6,9 +6,7 @@ on:
 
 jobs:
   nix-build:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/general-intelligence-systems/runs-on-nix:latest
+    runs-on: ghcr.io/general-intelligence-systems/runs-on-nix:latest
     steps:
       - uses: actions/checkout@v4
 
