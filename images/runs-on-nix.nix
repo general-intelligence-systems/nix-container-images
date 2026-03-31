@@ -73,12 +73,17 @@
     for f in ${pkgs.stdenv.cc.cc.lib}/lib/*.so*; do
       [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
     done
+
+    # ld.so.conf + cache so the dynamic linker finds libs without LD_LIBRARY_PATH
+    echo '/lib/x86_64-linux-gnu' > ./etc/ld.so.conf
+    ${pkgs.glibc.bin}/bin/ldconfig -r .
   '';
 
   config = {
     Env = [
       "HOME=/root"
       "USER=root"
+      "LD_LIBRARY_PATH=/lib/x86_64-linux-gnu"
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "GIT_SSL_CAINFO=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
