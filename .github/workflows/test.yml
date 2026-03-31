@@ -13,4 +13,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check nix flake
-        run: nix flake check
+        run: |
+          git config --global --add safe.directory '*'
+          nix flake check
