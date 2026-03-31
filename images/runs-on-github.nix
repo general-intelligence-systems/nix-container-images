@@ -44,12 +44,17 @@
   fakeRootCommands = ''
     mkdir -p ./etc
     echo 'root:x:0:0:root:/root:/bin/bash' > ./etc/passwd
+    echo 'runner:x:1001:1001:runner:/home/runner:/bin/bash' >> ./etc/passwd
     echo 'nobody:x:65534:65534:nobody:/nonexistent:/bin/false' >> ./etc/passwd
     echo 'root:x:0:' > ./etc/group
+    echo 'runner:x:1001:' >> ./etc/group
     echo 'nobody:x:65534:' >> ./etc/group
     echo 'root:!:1::::::' > ./etc/shadow
+    echo 'runner:!:1::::::' >> ./etc/shadow
 
     mkdir -p ./root
+    mkdir -p ./home/runner
+    chown 1001:1001 ./home/runner
     mkdir -p ./tmp
     chmod 1777 ./tmp
     mkdir -p ./run
