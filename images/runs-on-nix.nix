@@ -74,9 +74,7 @@
       [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
     done
 
-    # ld.so.conf + cache so the dynamic linker finds libs without LD_LIBRARY_PATH
-    echo '/lib/x86_64-linux-gnu' > ./etc/ld.so.conf
-    ${pkgs.glibc.bin}/bin/ldconfig -r .
+
   '';
 
   config = {
