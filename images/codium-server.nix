@@ -103,6 +103,11 @@ in
     chmod 1777 ./tmp
     mkdir -p ./run
 
+    # Nix config
+    mkdir -p ./etc/nix
+    echo 'experimental-features = nix-command flakes' > ./etc/nix/nix.conf
+    echo 'sandbox = false' >> ./etc/nix/nix.conf
+
     echo 'hosts: files dns' > ./etc/nsswitch.conf
   '';
 
