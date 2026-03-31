@@ -21,16 +21,15 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/general-intelligence-systems/runs-on-nix:latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: cachix/install-nix-action@v31.10.0
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-
       - name: Build image
-        run: nix build .#${{ inputs.image }}
+        run: |
+          git config --global --add safe.directory '*'
+          nix build .#${{ inputs.image }}
 
       - name: Load image into Docker
         run: docker load < result
