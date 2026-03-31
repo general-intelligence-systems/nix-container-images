@@ -8,14 +8,9 @@ jobs:
   nix-build:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/general-intelligence-systems/nix-for-github-actions:latest
+      image: ghcr.io/general-intelligence-systems/runs-on-nix:latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: debug
-        run: |
-          whoami
-          echo $PATH
-          
       - name: Check nix flake
         run: nix flake check
