@@ -18,6 +18,28 @@ let
   # so serve-web prereq checks find libstdc++.so and ldconfig,
   # and extension binaries with pre-compiled libs just work.
   codium-fhs = pkgs.vscodium.fhsWithPackages (ps: with ps; [
+    # Dev tools available inside the FHS environment
+    nix
+    git
+    curl
+    wget
+    openssh
+    jq
+    nodejs
+    bashInteractive
+    coreutils
+    findutils
+    gnugrep
+    gnused
+    gawk
+    less
+    which
+    procps
+    sudo
+    gnutar
+    gzip
+
+    # Libraries for extensions
     zlib
     openssl
     icu
