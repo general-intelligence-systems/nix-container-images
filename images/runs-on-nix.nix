@@ -60,6 +60,19 @@
     echo 'sandbox = false' >> ./etc/nix/nix.conf
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
+
+    # FHS compat: dynamic linker symlink
+    mkdir -p ./lib64
+    ln -sf ${pkgs.glibc}/lib/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
+
+    # FHS compat: library symlinks for GitHub Actions injected binaries
+    mkdir -p ./lib/x86_64-linux-gnu
+    for f in ${pkgs.glibc}/lib/*.so*; do
+      [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
+    done
+    for f in ${pkgs.stdenv.cc.cc.lib}/lib/*.so*; do
+      [ -f "$f" ] && ln -sf "$f" ./lib/x86_64-linux-gnu/$(basename "$f") || true
+    done
   '';
 
   config = {
