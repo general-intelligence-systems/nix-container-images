@@ -14,55 +14,28 @@ let
     "editorconfig.editorconfig"
   ];
 
-  # Use vscodium.fhs — launches inside FHS compliant environment
-  # so serve-web prereq checks find libstdc++.so and ldconfig,
-  # and extension binaries with pre-compiled libs just work.
-  codium-fhs = pkgs.vscodium.fhsWithPackages (ps: with ps; [
-    # Dev tools available inside the FHS environment
-    nix
-    git
-    curl
-    wget
-    openssh
-    jq
-    yq-go
-    nodejs
-    bashInteractive
-    zsh
-    coreutils
-    findutils
-    gnugrep
-    gnused
-    gawk
-    less
-    which
-    procps
-    sudo
-    gnutar
-    gzip
-    ripgrep
-    repgrep
-    gh
-    kubectl
-    tea
-    vcluster
-    ruby_3_4
-    python3
-    pkgs-stable.opencode
-    keychain
-    direnv
-    zoxide
-    fzf
-    vim
-
-    # Libraries for extensions
+  # Libraries that extension binaries need at runtime.
+  # These are made available to codium via a scoped FHS wrapper so that
+  # the FHS mount namespace only applies to the codium process — not to
+  # the container-wide shell, direnv, or nix.  This prevents the FHS
+  # env from placing read-only bind mounts inside /nix/store (on glibc's
+  # etc/ dir) which block nix substitution and corrupt the store.
+  fhsLibs = ps: with ps; [
     zlib
     openssl
     icu
     libsecret
     xorg.libX11
     xorg.libxcb
-  ]);
+  ];
+
+  # Scoped FHS wrapper: only the codium binary runs inside the FHS
+  # namespace.  Everything else (bash, nix, direnv) stays outside it.
+  codium-fhs = pkgs.buildFHSEnv {
+    name = "codium";
+    targetPkgs = fhsLibs;
+    runScript = "${pkgs.vscodium}/bin/codium";
+  };
 
   codium-with-extensions = pkgs.vscode-with-extensions.override {
     vscode = codium-fhs;
@@ -75,8 +48,13 @@ in
   maxLayers = 120;
 
   contents = with pkgs; [
-    # Editor (FHS-wrapped)
+    # Editor (FHS-wrapped — only codium itself runs in the FHS namespace)
     codium-with-extensions
+
+    # Container-wide tools — these run OUTSIDE the FHS namespace so
+    # they never see read-only bind mounts on /nix/store paths.
+    nix
+    direnv
 
     # Init
     dumb-init
@@ -109,10 +87,10 @@ in
     vcluster
     pkgs-stable.opencode
     keychain
-    direnv
     zoxide
     fzf
     vim
+    docker-compose
 
     # Languages
     ruby_3_4
@@ -124,6 +102,8 @@ in
 
     # Locale
     glibcLocales
+    gnutar
+    gzip
   ];
 
   fakeRootCommands = ''
