@@ -129,8 +129,10 @@ in
     chown 1000:1000 ./home/coder
 
     # Shell profile to include nix profile in PATH
+    # Note: buildFHSEnv already creates etc/profile.d/nix.sh (read-only),
+    # so we use a different filename to avoid "Permission denied".
     mkdir -p ./etc/profile.d
-    echo 'export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix.sh
+    echo 'export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix-path.sh
 
     mkdir -p ./tmp
     chmod 1777 ./tmp
