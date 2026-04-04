@@ -1,4 +1,4 @@
-{ pkgs, lib, org, registry, inputs, system, ... }:
+{ pkgs, pkgs-stable, lib, org, registry, inputs, system, ... }:
 let
   nix4vscode = inputs.nix4vscode.overlays.default;
 
@@ -25,8 +25,10 @@ let
     wget
     openssh
     jq
+    yq-go
     nodejs
     bashInteractive
+    zsh
     coreutils
     findutils
     gnugrep
@@ -38,6 +40,15 @@ let
     sudo
     gnutar
     gzip
+    ripgrep
+    repgrep
+    gh
+    kubectl
+    tea
+    vcluster
+    ruby_3_4
+    python3
+    pkgs-stable.opencode
 
     # Libraries for extensions
     zlib
@@ -62,8 +73,12 @@ in
     # Editor (FHS-wrapped)
     codium-with-extensions
 
+    # Init
     dumb-init
+
+    # Shell essentials
     bashInteractive
+    zsh
     coreutils
     findutils
     gnugrep
@@ -73,13 +88,31 @@ in
     which
     procps
     sudo
+
+    # Dev tools
     git
     curl
     wget
     openssh
     jq
+    yq-go
+    ripgrep
+    repgrep
+    gh
+    kubectl
+    tea
+    vcluster
+    pkgs-stable.opencode
+
+    # Languages
+    ruby_3_4
+    python3
     nodejs
+
+    # TLS certs
     cacert
+
+    # Locale
     glibcLocales
   ];
 

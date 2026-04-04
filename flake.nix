@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.11";
     claude-code.url = "github:general-intelligence-systems/claude-code-nix";
     opencode.url = "github:general-intelligence-systems/opencode-flake";
     nix4vscode = {
@@ -15,7 +16,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-stable, ... }@inputs:
     let
       system   = "x86_64-linux";
       pkgs     = nixpkgs.legacyPackages.${system};
@@ -23,8 +24,10 @@
       org      = "general-intelligence-systems";
       registry = "ghcr.io/${org}";
 
+      pkgs-stable = nixpkgs-stable.legacyPackages.${system};
+
       importFile = filename: import (./images + "/${filename}") {
-        inherit pkgs lib org registry inputs system;
+        inherit pkgs pkgs-stable lib org registry inputs system;
       };
 
       imageDir       = builtins.readDir ./images;
