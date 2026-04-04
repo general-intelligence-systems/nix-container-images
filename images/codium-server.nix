@@ -31,11 +31,17 @@ let
 
   # Scoped FHS wrapper: only the codium binary runs inside the FHS
   # namespace.  Everything else (bash, nix, direnv) stays outside it.
-  codium-fhs = pkgs.buildFHSEnv {
+  codium-fhs = (pkgs.buildFHSEnv {
     name = "codium";
     targetPkgs = fhsLibs;
     runScript = "${pkgs.vscodium}/bin/codium";
-  };
+  }).overrideAttrs (_: {
+    # vscode-with-extensions expects these attributes on the vscode package
+    inherit (pkgs.vscodium) pname version;
+    passthru = (pkgs.vscodium.passthru or {}) // {
+      inherit (pkgs.vscodium) executableName longName;
+    };
+  });
 
   codium-with-extensions = pkgs.vscode-with-extensions.override {
     vscode = codium-fhs;
