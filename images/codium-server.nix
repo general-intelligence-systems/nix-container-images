@@ -49,6 +49,11 @@ let
     ruby_3_4
     python3
     pkgs-stable.opencode
+    keychain
+    direnv
+    zoxide
+    fzf
+    vim
 
     # Libraries for extensions
     zlib
@@ -103,6 +108,11 @@ in
     tea
     vcluster
     pkgs-stable.opencode
+    keychain
+    direnv
+    zoxide
+    fzf
+    vim
 
     # Languages
     ruby_3_4
