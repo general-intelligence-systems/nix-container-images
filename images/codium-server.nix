@@ -93,7 +93,7 @@ let
   # namespace.  Everything else (bash, nix, direnv) stays outside it.
   codium-fhs = (pkgs.buildFHSEnv {
     name = "codium";
-    targetPkgs = ps: (fhsLibs ps) ++ [ containerTools ];
+    targetPkgs = ps: (fhsLibs ps) ++ [ containerTools pkgs.tzdata ];
     runScript = "${pkgs.vscodium}/bin/codium";
   }).overrideAttrs (_: {
     # vscode-with-extensions expects these attributes on the vscode package
@@ -144,6 +144,10 @@ in
     # so we use a different filename to avoid "Permission denied".
     mkdir -p ./etc/profile.d
     echo 'export PATH="${containerTools}/bin:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix-path.sh
+
+    # Zoneinfo for processes outside the FHS namespace (e.g. Ruby tzinfo gem)
+    mkdir -p ./usr/share
+    ln -s ${pkgs.tzdata}/share/zoneinfo ./usr/share/zoneinfo
 
     mkdir -p ./tmp
     chmod 1777 ./tmp
