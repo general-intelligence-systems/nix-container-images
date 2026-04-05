@@ -57,7 +57,7 @@ let
       zoxide
       fzf
       vim
-      docker-compose
+      docker-client
 
       # Languages
       ruby_3_4
