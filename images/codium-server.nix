@@ -67,7 +67,8 @@ let
       # TLS certs
       cacert
 
-      # Locale
+      # Locale & timezone
+      tzdata
       glibcLocales
       gnutar
       gzip
@@ -175,6 +176,7 @@ in
       "LOCALE_ARCHIVE=${pkgs.glibcLocales}/lib/locale/locale-archive"
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+      "TZDIR=${pkgs.tzdata}/share/zoneinfo"
       "EDITOR=codium --wait"
       "PATH=${containerTools}/bin:/home/coder/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/bin:/usr/bin"
     ];
