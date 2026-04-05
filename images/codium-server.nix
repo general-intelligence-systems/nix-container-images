@@ -14,6 +14,67 @@ let
     "editorconfig.editorconfig"
   ];
 
+  # All container-wide CLI tools collected into a single derivation so
+  # that we get one stable bin/ directory to put on PATH.  This avoids
+  # relying on the /bin symlinks that buildLayeredImage creates (which
+  # are invisible inside the FHS mount namespace that codium uses) and
+  # the non-existent Nix profile directories.
+  containerTools = pkgs.buildEnv {
+    name = "container-tools";
+    paths = with pkgs; [
+      nix
+      direnv
+      dumb-init
+
+      # Shell essentials
+      bashInteractive
+      zsh
+      coreutils
+      findutils
+      gnugrep
+      gnused
+      gawk
+      less
+      which
+      procps
+      sudo
+
+      # Dev tools
+      git
+      curl
+      wget
+      openssh
+      jq
+      yq-go
+      ripgrep
+      repgrep
+      gh
+      kubectl
+      tea
+      vcluster
+      pkgs-stable.opencode
+      keychain
+      zoxide
+      fzf
+      vim
+      docker-compose
+
+      # Languages
+      ruby_3_4
+      python3
+      nodejs
+
+      # TLS certs
+      cacert
+
+      # Locale
+      glibcLocales
+      gnutar
+      gzip
+    ];
+    pathsToLink = [ "/bin" "/lib" "/share" "/etc" ];
+  };
+
   # Libraries that extension binaries need at runtime.
   # These are made available to codium via a scoped FHS wrapper so that
   # the FHS mount namespace only applies to the codium process — not to
@@ -53,63 +114,14 @@ in
   tag = "latest";
   maxLayers = 120;
 
-  contents = with pkgs; [
+  contents = [
     # Editor (FHS-wrapped — only codium itself runs in the FHS namespace)
     codium-with-extensions
 
-    # Container-wide tools — these run OUTSIDE the FHS namespace so
-    # they never see read-only bind mounts on /nix/store paths.
-    nix
-    direnv
-
-    # Init
-    dumb-init
-
-    # Shell essentials
-    bashInteractive
-    zsh
-    coreutils
-    findutils
-    gnugrep
-    gnused
-    gawk
-    less
-    which
-    procps
-    sudo
-
-    # Dev tools
-    git
-    curl
-    wget
-    openssh
-    jq
-    yq-go
-    ripgrep
-    repgrep
-    gh
-    kubectl
-    tea
-    vcluster
-    pkgs-stable.opencode
-    keychain
-    zoxide
-    fzf
-    vim
-    docker-compose
-
-    # Languages
-    ruby_3_4
-    python3
-    nodejs
-
-    # TLS certs
-    cacert
-
-    # Locale
-    glibcLocales
-    gnutar
-    gzip
+    # All CLI tools merged into a single derivation (containerTools) so
+    # its bin/ directory can be placed on PATH and works both inside and
+    # outside the FHS mount namespace.
+    containerTools
   ];
 
   fakeRootCommands = ''
@@ -128,11 +140,11 @@ in
     mkdir -p ./home/coder
     chown 1000:1000 ./home/coder
 
-    # Shell profile to include nix profile in PATH
+    # Shell profile to ensure containerTools bin is on PATH for login shells
     # Note: buildFHSEnv already creates etc/profile.d/nix.sh (read-only),
     # so we use a different filename to avoid "Permission denied".
     mkdir -p ./etc/profile.d
-    echo 'export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix-path.sh
+    echo 'export PATH="${containerTools}/bin:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix-path.sh
 
     mkdir -p ./tmp
     chmod 1777 ./tmp
@@ -166,7 +178,7 @@ in
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "EDITOR=codium --wait"
-      "PATH=/home/coder/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/bin:/usr/bin"
+      "PATH=${containerTools}/bin:/home/coder/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/bin:/usr/bin"
     ];
   };
 }
