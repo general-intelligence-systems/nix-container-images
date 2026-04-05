@@ -72,7 +72,7 @@ let
       gnutar
       gzip
     ];
-    pathsToLink = [ "/bin" "/lib" "/share" "/etc" ];
+    pathsToLink = [ "/bin" ];
   };
 
   # Libraries that extension binaries need at runtime.
