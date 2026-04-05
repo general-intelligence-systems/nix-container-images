@@ -76,11 +76,9 @@ let
   };
 
   # Libraries that extension binaries need at runtime.
-  # These are made available to codium via a scoped FHS wrapper so that
-  # the FHS mount namespace only applies to the codium process — not to
-  # the container-wide shell, direnv, or nix.  This prevents the FHS
-  # env from placing read-only bind mounts inside /nix/store (on glibc's
-  # etc/ dir) which block nix substitution and corrupt the store.
+  # These are included in the FHS wrapper alongside containerTools so
+  # that both libraries and CLI tools are visible inside the FHS mount
+  # namespace (which the codium integrated terminal inherits).
   fhsLibs = ps: with ps; [
     zlib
     openssl
@@ -94,7 +92,7 @@ let
   # namespace.  Everything else (bash, nix, direnv) stays outside it.
   codium-fhs = (pkgs.buildFHSEnv {
     name = "codium";
-    targetPkgs = fhsLibs;
+    targetPkgs = ps: (fhsLibs ps) ++ [ containerTools ];
     runScript = "${pkgs.vscodium}/bin/codium";
   }).overrideAttrs (_: {
     # vscode-with-extensions expects these attributes on the vscode package
