@@ -169,8 +169,7 @@ in
       "--host" "0.0.0.0"
       "--port" "8080"
       "--without-connection-token"
-      "--server-data-dir" "/home/coder/.vscodium-server/data"
-      "--user-data-dir" "/home/coder/.vscodium-server/user-data"
+      "--server-data-dir" "/home/coder/.vscodium-server/user-data"
     ];
     ExposedPorts = { "8080/tcp" = {}; };
     User = "1000:1000";
