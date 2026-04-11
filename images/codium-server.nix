@@ -89,28 +89,31 @@ let
     ' -- "$@"
   '';
 
-  # Self-contained FHS-wrapped vscodium.  We override customizeFHSEnv
-  # to pass --cap-add CAP_SYS_ADMIN to bubblewrap, which prevents it
-  # from dropping all capabilities for non-root users.  This lets the
+  # FHS-wrapped vscodium with --cap-add CAP_SYS_ADMIN so bubblewrap
+  # doesn't drop capabilities for child processes.  This lets the
   # terminal-shell wrapper use unshare(2) to undo the glibc overlay.
-  codium-custom = pkgs.vscodium.override {
-    customizeFHSEnv = args: args // {
-      extraBwrapArgs = (args.extraBwrapArgs or []) ++ [
-        "--cap-add" "CAP_SYS_ADMIN"
-      ];
+  codium-fhs = (pkgs.buildFHSEnv {
+    name = "codium";
+    targetPkgs = ps: with ps; [
+      zlib
+      openssl
+      icu
+      libsecret
+      xorg.libX11
+      xorg.libxcb
+      containerTools
+      tzdata
+    ];
+    runScript = "${pkgs.vscodium}/bin/codium";
+    extraBwrapArgs = [
+      "--cap-add" "CAP_SYS_ADMIN"
+    ];
+  }).overrideAttrs (_: {
+    inherit (pkgs.vscodium) pname version;
+    passthru = (pkgs.vscodium.passthru or {}) // {
+      inherit (pkgs.vscodium) executableName longName;
     };
-  };
-
-  codium-fhs = codium-custom.fhsWithPackages (ps: with ps; [
-    zlib
-    openssl
-    icu
-    libsecret
-    xorg.libX11
-    xorg.libxcb
-    containerTools
-    tzdata
-  ]);
+  });
 
   codium-with-extensions = pkgs.vscode-with-extensions.override {
     vscode = codium-fhs;
