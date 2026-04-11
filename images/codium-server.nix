@@ -87,6 +87,7 @@ let
     libsecret
     xorg.libX11
     xorg.libxcb
+    stdenv.cc.cc.lib
   ];
 
   # Library search path for extension binaries that expect FHS library
