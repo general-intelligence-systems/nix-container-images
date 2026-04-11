@@ -171,7 +171,7 @@ in
     Cmd = [
       "${pkgs.dumb-init}/bin/dumb-init"
       "${pkgs.bash}/bin/bash" "-c"
-      "mount --make-rslave /nix && exec ${codium-with-extensions}/bin/codium serve-web --host 0.0.0.0 --port 8080 --without-connection-token --server-data-dir /home/coder/.vscodium-server/user-data"
+      "mount --make-rslave /nix && exec setpriv --reuid=1000 --regid=1000 --init-groups ${codium-with-extensions}/bin/codium serve-web --host 0.0.0.0 --port 8080 --without-connection-token --server-data-dir /home/coder/.vscodium-server/user-data"
     ];
     ExposedPorts = { "8080/tcp" = {}; };
     WorkingDir = "/home/coder";
