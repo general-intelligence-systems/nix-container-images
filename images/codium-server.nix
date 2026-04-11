@@ -72,6 +72,7 @@ let
       glibcLocales
       gnutar
       gzip
+      util-linux
     ];
     pathsToLink = [ "/bin" ];
   };
@@ -146,6 +147,19 @@ in
     echo 'sandbox = false' >> ./etc/nix/nix.conf
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
+
+    # Terminal wrapper that escapes bubblewrap's mount namespace.
+    # Codium runs inside buildFHSEnv/bubblewrap which overlays a
+    # read-only tmpfs on glibc's etc/, breaking nix substitutions.
+    # nsenter re-enters PID 1's mount namespace so the terminal
+    # shell (and nix/direnv) see the real nix store.
+    mkdir -p ./home/coder/.local/bin
+    cat > ./home/coder/.local/bin/terminal-shell <<'WRAPPER'
+#!/bin/bash
+exec nsenter --mount=/proc/1/ns/mnt /bin/zsh -l "$@"
+WRAPPER
+    chmod +x ./home/coder/.local/bin/terminal-shell
+    chown -R 1000:1000 ./home/coder/.local
   '';
 
   config = {
@@ -169,6 +183,7 @@ in
       "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "TZDIR=${pkgs.tzdata}/share/zoneinfo"
+      "SHELL=/home/coder/.local/bin/terminal-shell"
       "EDITOR=codium --wait"
       "PATH=${containerTools}/bin:/home/coder/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/bin:/usr/bin"
     ];
