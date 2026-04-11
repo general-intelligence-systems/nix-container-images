@@ -72,6 +72,7 @@ let
       glibcLocales
       gnutar
       gzip
+      util-linux
     ];
     pathsToLink = [ "/bin" ];
   };
@@ -162,14 +163,15 @@ in
   '';
 
   config = {
+    # mount --make-rslave prevents bubblewrap's internal tmpfs/bind
+    # mounts (on the glibc store path) from propagating back into the
+    # container's root mount namespace, which would make the path
+    # read-only and corrupt the Nix store.  Requires CAP_SYS_ADMIN on
+    # the k8s container securityContext.
     Cmd = [
       "${pkgs.dumb-init}/bin/dumb-init"
-      "${codium-with-extensions}/bin/codium"
-      "serve-web"
-      "--host" "0.0.0.0"
-      "--port" "8080"
-      "--without-connection-token"
-      "--server-data-dir" "/home/coder/.vscodium-server/user-data"
+      "${pkgs.bash}/bin/bash" "-c"
+      "mount --make-rslave /nix && exec ${codium-with-extensions}/bin/codium serve-web --host 0.0.0.0 --port 8080 --without-connection-token --server-data-dir /home/coder/.vscodium-server/user-data"
     ];
     ExposedPorts = { "8080/tcp" = {}; };
     User = "1000:1000";
