@@ -133,8 +133,6 @@ in
     chown 1000:1000 ./home/coder
 
     # Shell profile to ensure containerTools bin is on PATH for login shells
-    # Note: buildFHSEnv already creates etc/profile.d/nix.sh (read-only),
-    # so we use a different filename to avoid "Permission denied".
     mkdir -p ./etc/profile.d
     echo 'export PATH="${containerTools}/bin:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix-path.sh
 
@@ -152,6 +150,15 @@ in
     echo 'sandbox = false' >> ./etc/nix/nix.conf
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
+
+    # FHS library paths so vscodium server finds libstdc++ and the
+    # dynamic linker without needing bubblewrap/buildFHSEnv.
+    mkdir -p ./lib64
+    ln -s ${pkgs.glibc}/lib/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
+    mkdir -p ./usr/lib
+    for f in ${pkgs.stdenv.cc.cc.lib}/lib/libstdc++*; do
+      ln -sf "$f" ./usr/lib/
+    done
   '';
 
   config = {
