@@ -72,7 +72,6 @@ let
       glibcLocales
       gnutar
       gzip
-      util-linux
     ];
     pathsToLink = [ "/bin" ];
   };
@@ -90,22 +89,14 @@ let
     xorg.libxcb
   ];
 
-  # Scoped FHS wrapper: only the codium binary runs inside the FHS
-  # namespace.  Everything else (bash, nix, direnv) stays outside it.
-  codium-fhs = (pkgs.buildFHSEnv {
-    name = "codium";
-    targetPkgs = ps: (fhsLibs ps) ++ [ containerTools pkgs.tzdata ];
-    runScript = "${pkgs.vscodium}/bin/codium";
-  }).overrideAttrs (_: {
-    # vscode-with-extensions expects these attributes on the vscode package
-    inherit (pkgs.vscodium) pname version;
-    passthru = (pkgs.vscodium.passthru or {}) // {
-      inherit (pkgs.vscodium) executableName longName;
-    };
-  });
+  # Library search path for extension binaries that expect FHS library
+  # locations.  Using LD_LIBRARY_PATH avoids buildFHSEnv/bubblewrap,
+  # which creates a mount namespace that makes Nix store paths
+  # read-only and breaks `nix build` from the integrated terminal.
+  libPath = pkgs.lib.makeLibraryPath (fhsLibs pkgs);
 
   codium-with-extensions = pkgs.vscode-with-extensions.override {
-    vscode = codium-fhs;
+    vscode = pkgs.vscodium;
     vscodeExtensions = extensions;
   };
 in
@@ -163,17 +154,17 @@ in
   '';
 
   config = {
-    # mount --make-rslave prevents bubblewrap's internal tmpfs/bind
-    # mounts (on the glibc store path) from propagating back into the
-    # container's root mount namespace, which would make the path
-    # read-only and corrupt the Nix store.  Requires CAP_SYS_ADMIN on
-    # the k8s container securityContext.
     Cmd = [
       "${pkgs.dumb-init}/bin/dumb-init"
-      "${pkgs.bash}/bin/bash" "-c"
-      "mount --make-rslave / && exec setpriv --reuid=1000 --regid=1000 --init-groups ${codium-with-extensions}/bin/codium serve-web --host 0.0.0.0 --port 8080 --without-connection-token --server-data-dir /home/coder/.vscodium-server/user-data"
+      "${codium-with-extensions}/bin/codium"
+      "serve-web"
+      "--host" "0.0.0.0"
+      "--port" "8080"
+      "--without-connection-token"
+      "--server-data-dir" "/home/coder/.vscodium-server/user-data"
     ];
-    ExposedPorts = { "8080/tcp" = {}; };
+    ExposedPorts = { "8080/tcp" = {};  };
+    User = "1000:1000";
     WorkingDir = "/home/coder";
     Env = [
       "HOME=/home/coder"
@@ -184,6 +175,7 @@ in
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "TZDIR=${pkgs.tzdata}/share/zoneinfo"
       "EDITOR=codium --wait"
+      "LD_LIBRARY_PATH=${libPath}"
       "PATH=${containerTools}/bin:/home/coder/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/bin:/usr/bin"
     ];
   };
