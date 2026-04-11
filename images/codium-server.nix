@@ -89,10 +89,19 @@ let
     ' -- "$@"
   '';
 
-  # Self-contained FHS-wrapped vscodium using the nixpkgs API.
-  # fhsWithPackages bakes all dependencies into the derivation itself
-  # so bubblewrap doesn't need to overlay on top of existing store paths.
-  codium-fhs = pkgs.vscodium.fhsWithPackages (ps: with ps; [
+  # Self-contained FHS-wrapped vscodium.  We override customizeFHSEnv
+  # to pass --cap-add CAP_SYS_ADMIN to bubblewrap, which prevents it
+  # from dropping all capabilities for non-root users.  This lets the
+  # terminal-shell wrapper use unshare(2) to undo the glibc overlay.
+  codium-custom = pkgs.vscodium.override {
+    customizeFHSEnv = args: args // {
+      extraBwrapArgs = (args.extraBwrapArgs or []) ++ [
+        "--cap-add" "CAP_SYS_ADMIN"
+      ];
+    };
+  };
+
+  codium-fhs = codium-custom.fhsWithPackages (ps: with ps; [
     zlib
     openssl
     icu
