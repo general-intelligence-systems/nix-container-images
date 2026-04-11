@@ -76,28 +76,22 @@ let
     pathsToLink = [ "/bin" ];
   };
 
-  # Libraries that extension binaries need at runtime.
-  # These are included in the FHS wrapper alongside containerTools so
-  # that both libraries and CLI tools are visible inside the FHS mount
-  # namespace (which the codium integrated terminal inherits).
-  fhsLibs = ps: with ps; [
+  # Self-contained FHS-wrapped vscodium using the nixpkgs API.
+  # fhsWithPackages bakes all dependencies into the derivation itself
+  # so bubblewrap doesn't need to overlay on top of existing store paths.
+  codium-fhs = pkgs.vscodium.fhsWithPackages (ps: with ps; [
     zlib
     openssl
     icu
     libsecret
     xorg.libX11
     xorg.libxcb
-    stdenv.cc.cc.lib
-  ];
-
-  # Library search path for extension binaries that expect FHS library
-  # locations.  Using LD_LIBRARY_PATH avoids buildFHSEnv/bubblewrap,
-  # which creates a mount namespace that makes Nix store paths
-  # read-only and breaks `nix build` from the integrated terminal.
-  libPath = pkgs.lib.makeLibraryPath (fhsLibs pkgs);
+    containerTools
+    tzdata
+  ]);
 
   codium-with-extensions = pkgs.vscode-with-extensions.override {
-    vscode = pkgs.vscodium;
+    vscode = codium-fhs;
     vscodeExtensions = extensions;
   };
 in
@@ -133,6 +127,8 @@ in
     chown 1000:1000 ./home/coder
 
     # Shell profile to ensure containerTools bin is on PATH for login shells
+    # Note: buildFHSEnv already creates etc/profile.d/nix.sh (read-only),
+    # so we use a different filename to avoid "Permission denied".
     mkdir -p ./etc/profile.d
     echo 'export PATH="${containerTools}/bin:$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"' > ./etc/profile.d/nix-path.sh
 
@@ -150,15 +146,6 @@ in
     echo 'sandbox = false' >> ./etc/nix/nix.conf
 
     echo 'hosts: files dns' > ./etc/nsswitch.conf
-
-    # FHS library paths so vscodium server finds libstdc++ and the
-    # dynamic linker without needing bubblewrap/buildFHSEnv.
-    mkdir -p ./lib64
-    ln -s ${pkgs.glibc}/lib/ld-linux-x86-64.so.2 ./lib64/ld-linux-x86-64.so.2
-    mkdir -p ./usr/lib
-    for f in ${pkgs.stdenv.cc.cc.lib}/lib/libstdc++*; do
-      ln -sf "$f" ./usr/lib/
-    done
   '';
 
   config = {
@@ -171,7 +158,7 @@ in
       "--without-connection-token"
       "--server-data-dir" "/home/coder/.vscodium-server/user-data"
     ];
-    ExposedPorts = { "8080/tcp" = {};  };
+    ExposedPorts = { "8080/tcp" = {}; };
     User = "1000:1000";
     WorkingDir = "/home/coder";
     Env = [
@@ -183,7 +170,6 @@ in
       "NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
       "TZDIR=${pkgs.tzdata}/share/zoneinfo"
       "EDITOR=codium --wait"
-      "LD_LIBRARY_PATH=${libPath}"
       "PATH=${containerTools}/bin:/home/coder/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/bin:/usr/bin"
     ];
   };
