@@ -76,13 +76,17 @@ let
     pathsToLink = [ "/bin" ];
   };
 
-  # Terminal wrapper that escapes bubblewrap's mount namespace.
-  # Codium runs inside buildFHSEnv/bubblewrap which overlays a
-  # read-only tmpfs on glibc's etc/, breaking nix substitutions.
-  # nsenter re-enters PID 1's mount namespace so the terminal
-  # shell (and nix/direnv) see the real nix store.
+  # Terminal wrapper that undoes bubblewrap's glibc overlay.
+  # buildFHSEnv/bubblewrap mounts a read-only tmpfs on glibc's etc/
+  # (for ld.so.cache indirection), which prevents nix from substituting
+  # packages that depend on that glibc path.  We create a new mount
+  # namespace (via unshare, using the existing CAP_SYS_ADMIN) and
+  # unmount the overlay so nix sees the real store.
   terminal-shell = pkgs.writeShellScriptBin "terminal-shell" ''
-    exec ${pkgs.util-linux}/bin/nsenter --mount=/proc/1/ns/mnt ${pkgs.zsh}/bin/zsh -l "$@"
+    exec ${pkgs.util-linux}/bin/unshare --mount ${pkgs.bash}/bin/bash -c '
+      ${pkgs.util-linux}/bin/umount ${pkgs.glibc}/etc 2>/dev/null || true
+      exec ${pkgs.zsh}/bin/zsh -l "$@"
+    ' -- "$@"
   '';
 
   # Self-contained FHS-wrapped vscodium using the nixpkgs API.
